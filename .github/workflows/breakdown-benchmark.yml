@@ -28,9 +28,9 @@ jobs:
             artifact_name: jax-0.9.1-breakdown
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v8
         with:
           python-version: "3.11"
 
@@ -55,9 +55,9 @@ jobs:
     needs: benchmark
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v8
         with:
           python-version: "3.11"
 
