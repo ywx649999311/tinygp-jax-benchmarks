@@ -1,0 +1,83 @@
+name: benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Benchmark profile to run
+        required: true
+        default: ci
+        type: choice
+        options:
+          - smoke
+          - ci
+          - full
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - jax_version: "0.4.31"
+            extra: jax0431
+            artifact_name: jax-0.4.31
+          - jax_version: "0.9.1"
+            extra: jax091
+            artifact_name: jax-0.9.1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sync environment
+        run: uv sync --extra ${{ matrix.extra }}
+
+      - name: Run benchmark
+        run: |
+          mkdir -p results
+          uv run python -m benchmarks.run \
+            --profile "${{ inputs.profile }}" \
+            --output "results/${{ matrix.artifact_name }}.json"
+
+      - name: Upload benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: results/${{ matrix.artifact_name }}.json
+
+  compare:
+    runs-on: ubuntu-latest
+    needs: benchmark
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sync compare environment
+        run: uv sync --group test
+
+      - name: Download baseline artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jax-0.4.31
+          path: results
+
+      - name: Download candidate artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jax-0.9.1
+          path: results
+
+      - name: Append benchmark summary
+        run: |
+          uv run python -m benchmarks.compare \
+            results/jax-0.4.31.json \
+            results/jax-0.9.1.json >> "$GITHUB_STEP_SUMMARY"

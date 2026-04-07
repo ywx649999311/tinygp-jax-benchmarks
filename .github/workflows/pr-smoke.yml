@@ -1,0 +1,31 @@
+name: pr-smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sync smoke environment
+        run: uv sync --extra jax091 --group test
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Run smoke benchmark
+        run: |
+          mkdir -p results
+          uv run python -m benchmarks.run \
+            --profile smoke \
+            --output results/pr-smoke.json

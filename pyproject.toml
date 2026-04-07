@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tinygp-jax-benchmarks"
+version = "0.1.0"
+description = "CPU-only JAX benchmark harness for tinygp across pinned dependency versions."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "matplotlib>=3.9",
+]
+
+[project.optional-dependencies]
+jax0431 = [
+  "jax[cpu]==0.4.31",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax091 = [
+  "jax[cpu]==0.9.1",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+
+[dependency-groups]
+test = [
+  "pytest>=8.3",
+]
+
+[tool.uv]
+conflicts = [
+  [
+    { extra = "jax0431" },
+    { extra = "jax091" },
+  ],
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["benchmarks"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
