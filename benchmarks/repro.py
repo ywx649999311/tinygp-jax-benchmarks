@@ -47,7 +47,7 @@ def main() -> int:
         ts.append(time.perf_counter() - t0)
 
     print(
-        f"JAX {jax.__version__}  n={N}  m={M}  dtype={dtype}  "
+        f"JAX {jax.__version__}  n={N}  m={M}  dtype={dtype.dtype}  "
         f"median={statistics.median(ts) * 1e6:.1f} µs"
     )
     return 0

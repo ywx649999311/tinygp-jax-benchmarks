@@ -31,14 +31,29 @@ jobs:
       - name: JAX 0.4.31 (baseline — expected fast)
         run: |
           uv sync --extra jax0431
-          uv run python -m benchmarks.repro
+          uv run python -m benchmarks.repro | tee /tmp/r0431.txt
 
       - name: JAX 0.4.33 (expected slow)
         run: |
           uv sync --extra jax0433
-          uv run python -m benchmarks.repro
+          uv run python -m benchmarks.repro | tee /tmp/r0433.txt
 
       - name: JAX 0.4.35 (expected still slow)
         run: |
           uv sync --extra jax0435
-          uv run python -m benchmarks.repro
+          uv run python -m benchmarks.repro | tee /tmp/r0435.txt
+
+      - name: Summary
+        run: |
+          echo "### lax.scan float64 regression — Linux results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| JAX version | median (µs) |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          for f in /tmp/r0431.txt /tmp/r0433.txt /tmp/r0435.txt; do
+            ver=$(grep -oP 'JAX \K[0-9.]+' "$f")
+            med=$(grep -oP 'median=\K[0-9.]+' "$f")
+            echo "| $ver | $med |" >> $GITHUB_STEP_SUMMARY
+          done
+          echo ""
+          echo "=== regression summary ==="
+          cat /tmp/r0431.txt /tmp/r0433.txt /tmp/r0435.txt
