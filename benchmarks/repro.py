@@ -5,10 +5,14 @@ mirrors the tinygp Matern52 cholesky loop (n=2000, m=3, float64).
 
 Usage:
     uv run python -m benchmarks.repro
+    uv run python -m benchmarks.repro --output results/bisect/jax0431-repro.json
 """
 
+import argparse
+import json
 import statistics
 import time
+from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -36,6 +40,12 @@ def body(carry, data):
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--output", metavar="FILE",
+                        help="Write results as JSON to FILE (optional).")
+    args = parser.parse_args()
+
     scan_fn = lambda: jax.lax.scan(body, init, (d, p, q, a))
     compiled = jax.jit(scan_fn).lower().compile()
     jax.block_until_ready(compiled())  # warmup
@@ -46,10 +56,24 @@ def main() -> int:
         jax.block_until_ready(compiled())
         ts.append(time.perf_counter() - t0)
 
+    median_s = statistics.median(ts)
     print(
         f"JAX {jax.__version__}  n={N}  m={M}  dtype={dtype.dtype}  "
-        f"median={statistics.median(ts) * 1e6:.1f} µs"
+        f"median={median_s * 1e6:.1f} µs"
     )
+
+    if args.output:
+        out = Path(args.output)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps({
+            "jax": jax.__version__,
+            "n": N,
+            "m": M,
+            "dtype": str(dtype.dtype),
+            "median_s": median_s,
+            "samples": SAMPLES,
+        }, indent=2) + "\n")
+
     return 0
 
 
