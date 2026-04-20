@@ -17,6 +17,38 @@ jax0431 = [
   "jax[cpu]==0.4.31",
   "tinygp @ git+https://github.com/dfm/tinygp.git@main",
 ]
+jax0433 = [
+  "jax[cpu]==0.4.33",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax0435 = [
+  "jax[cpu]==0.4.35",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax0436 = [
+  "jax[cpu]==0.4.36",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax050 = [
+  "jax[cpu]==0.5.0",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax060 = [
+  "jax[cpu]==0.6.0",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax070 = [
+  "jax[cpu]==0.7.0",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax072 = [
+  "jax[cpu]==0.7.2",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
+jax080 = [
+  "jax[cpu]==0.8.0",
+  "tinygp @ git+https://github.com/dfm/tinygp.git@main",
+]
 jax091 = [
   "jax[cpu]==0.9.1",
   "tinygp @ git+https://github.com/dfm/tinygp.git@main",
@@ -31,6 +63,15 @@ test = [
 conflicts = [
   [
     { extra = "jax0431" },
+    { extra = "jax0433" },
+    { extra = "jax0435" },
+    { extra = "jax0436" },
+    { extra = "jax050" },
+    { extra = "jax060" },
+    { extra = "jax070" },
+    { extra = "jax072" },
+    { extra = "jax075" },
+    { extra = "jax080" },
     { extra = "jax091" },
   ],
 ]

@@ -1,0 +1,59 @@
+name: repro-regression
+
+# Confirms that the lax.scan float64 regression reproduces on Linux.
+# Runs the standalone reproducer (no tinygp dependency) under three
+# pinned JAX versions in a single job so the timings appear together
+# in the log.
+#
+# Expected output:
+#   JAX 0.4.31  n=2000  m=3  dtype=float64  median=~130 µs   ← fast
+#   JAX 0.4.33  n=2000  m=3  dtype=float64  median=~1300 µs  ← slow
+#   JAX 0.4.35  n=2000  m=3  dtype=float64  median=~1300 µs  ← still slow
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "benchmarks/repro.py"
+      - ".github/workflows/repro-regression.yml"
+
+jobs:
+  repro:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          python-version: "3.11"
+
+      - name: JAX 0.4.31 (baseline — expected fast)
+        run: |
+          uv sync --extra jax0431
+          uv run python -m benchmarks.repro | tee /tmp/r0431.txt
+
+      - name: JAX 0.4.33 (expected slow)
+        run: |
+          uv sync --extra jax0433
+          uv run python -m benchmarks.repro | tee /tmp/r0433.txt
+
+      - name: JAX 0.4.35 (expected still slow)
+        run: |
+          uv sync --extra jax0435
+          uv run python -m benchmarks.repro | tee /tmp/r0435.txt
+
+      - name: Summary
+        run: |
+          echo "### lax.scan float64 regression — Linux results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| JAX version | median (µs) |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          for f in /tmp/r0431.txt /tmp/r0433.txt /tmp/r0435.txt; do
+            ver=$(grep -oP 'JAX \K[0-9.]+' "$f")
+            med=$(grep -oP 'median=\K[0-9.]+' "$f")
+            echo "| $ver | $med |" >> $GITHUB_STEP_SUMMARY
+          done
+          echo ""
+          echo "=== regression summary ==="
+          cat /tmp/r0431.txt /tmp/r0433.txt /tmp/r0435.txt

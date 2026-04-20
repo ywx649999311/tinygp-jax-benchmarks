@@ -98,8 +98,18 @@ def run_profile(profile_name: str) -> dict[str, object]:
             gp = _block(compiled_build_gp(prepared_x))
             centered_y = prepared_y - gp.loc
             alpha = _block(gp._get_alpha(prepared_y))
+            kernel = gp.kernel
+            qsm = gp.solver.matrix
 
             stage_functions = {
+                "kernel.to_symm_qsm": (
+                    lambda k, x: k.to_symm_qsm(x),
+                    (kernel, prepared_x),
+                ),
+                "matrix.cholesky": (
+                    lambda m: m.cholesky(),
+                    (qsm,),
+                ),
                 "log_probability": (
                     lambda gp, y: gp.log_probability(y),
                     (gp, prepared_y),
